@@ -6,83 +6,62 @@
 <title>Quay</title>
 <style>
   :root {
-    --bg: #10140f;
-    --panel: #181e16;
-    --ink: #f3f0e6;
-    --faint: #a7b09d;
-    --line: #2c3828;
-    --good: #d6ff4a;
-    --hot: #ffb020;
+    --bg: #10140f; --panel: #181e16; --ink: #f3f0e6; --faint: #a7b09d;
+    --line: #2c3828; --good: #d6ff4a; --hot: #ffb020;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 "Segoe UI", sans-serif; }
   header, main { padding: 20px; }
   header { display: flex; justify-content: space-between; gap: 16px; align-items: end; border-bottom: 1px solid var(--line); }
-  h1 { margin: 0; font-size: 40px; letter-spacing: -0.04em; }
+  h1 { margin: 0; font-size: 36px; letter-spacing: -0.04em; }
   .mark { margin: 0 0 4px; color: var(--good); letter-spacing: 0.16em; text-transform: uppercase; font-size: 12px; }
   p { margin: 0; }
-  main { display: grid; grid-template-columns: 220px 1fr 300px; gap: 16px; }
+  main { display: grid; grid-template-columns: 240px 1fr; gap: 16px; }
   section { background: var(--panel); border: 1px solid var(--line); padding: 14px; }
   h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
-  button, input, textarea, select { font: inherit; color: inherit; background: #10140f; border: 1px solid var(--line); border-radius: 0; }
+  button, input, textarea, select { font: inherit; color: inherit; background: #10140f; border: 1px solid var(--line); }
   button { cursor: pointer; padding: 8px 10px; }
   button.primary { background: var(--good); color: #10140f; border-color: var(--good); font-weight: 700; }
+  button.on { border-color: var(--good); color: var(--good); }
   input, textarea, select { width: 100%; padding: 8px; margin: 0 0 8px; }
-  textarea { min-height: 76px; resize: vertical; }
-  .seat { display: flex; justify-content: space-between; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line); }
-  .seat strong { display: block; }
-  .seat span { color: var(--faint); font-size: 13px; }
-  .line { padding: 10px 0; border-top: 1px solid var(--line); }
+  textarea { min-height: 72px; resize: vertical; }
+  .nav button { display: block; width: 100%; text-align: left; margin: 0 0 6px; background: transparent; }
+  .card, .line, .idea { border-top: 1px solid var(--line); padding: 10px 0; }
+  .card { width: 100%; text-align: left; background: transparent; }
   .meta { color: var(--faint); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .live { color: var(--good); }
   .hide { display: none; }
-  label.check { display: flex; gap: 8px; align-items: center; color: var(--faint); margin-bottom: 8px; }
-  .idea { border-top: 1px solid var(--line); padding: 10px 0; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  .row input, .row select { width: auto; margin: 0; }
+  label.check { display: flex; gap: 8px; align-items: center; color: var(--faint); }
   .step { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
   .pass { color: var(--good); }
-  #note { min-height: 1.2em; color: var(--hot); }
-  @media (max-width: 900px) { main { grid-template-columns: 1fr; } h1 { font-size: 32px; } }
+  #note { min-height: 1.2em; color: var(--hot); margin-bottom: 8px; }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } h1 { font-size: 30px; } }
 </style>
 </head>
 <body>
 <header>
   <div>
     <p class="mark">Quay</p>
-    <h1>The desk stays up.</h1>
+    <h1 id="title">Home</h1>
   </div>
-  <p>No computer has to stay on. The page and the record live on GitHub.</p>
+  <p><span class="live">Live</span> · the record stays on GitHub</p>
 </header>
 <main>
   <section>
-    <h2>Seats</h2>
-    <label>I am
-      <select id="me"></select>
-    </label>
-    <div id="seats"></div>
-  </section>
-  <section>
-    <h2>Stream</h2>
-    <p id="note"></p>
-    <label class="check"><input id="quiet" type="checkbox" checked> Hide status lines</label>
-    <label>To
-      <select id="to"></select>
-    </label>
-    <textarea id="body" placeholder="Say the thing. Status lines such as signed on stay folded."></textarea>
-    <button class="primary" id="send">Send</button>
+    <h2>I am</h2>
+    <select id="me"></select>
+    <div class="nav" id="nav"></div>
     <div id="token-box">
-      <p class="meta">A token lets this phone write while every PC is off. It stays in this browser only.</p>
-      <input id="token" type="password" placeholder="GitHub token with repo access" autocomplete="off">
-      <button id="save-token">Save token on this phone</button>
+      <p class="meta">A token lets this phone write while every PC is off. It stays in this browser.</p>
+      <input id="token" type="password" placeholder="GitHub token" autocomplete="off">
+      <button id="save-token">Save token</button>
     </div>
-    <div id="stream"></div>
   </section>
   <section>
-    <h2>The Pass</h2>
-    <p class="meta">An idea needs a done line and a folder before it files.</p>
-    <input id="title" placeholder="The job">
-    <input id="done" placeholder="What done looks like">
-    <input id="folder" placeholder="Folder the file will land in">
-    <button class="primary" id="file">File it</button>
-    <div id="ideas"></div>
+    <p id="note"></p>
+    <div id="stage"></div>
   </section>
 </main>
 <script>
@@ -91,26 +70,16 @@ const REPO = "quay";
 const FILE = "site/desk.json";
 const API = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`;
 const SEATS = [
-  ["captain", "Captain"],
-  ["grok-cli", "Grok CLI"],
-  ["hermes", "Hermes"],
-  ["rex", "Rex"],
-  ["muse", "Muse"],
-  ["grok-bot", "Grok Bot"],
-  ["grokbuild", "GrokBuild"]
+  ["captain", "Captain"], ["grok-cli", "Grok CLI"], ["hermes", "Hermes"],
+  ["rex", "Rex"], ["muse", "Muse"], ["grok-bot", "Grok Bot"], ["grokbuild", "GrokBuild"]
 ];
-let desk = { seats: [], lines: [], ideas: [] };
-let sha = "";
+const nameOf = id => (SEATS.find(s => s[0] === id) || ["", id])[1];
+let desk = { lines: [], ideas: [], groups: [] };
 let etag = "";
+let view = "home";
 const note = document.querySelector("#note");
 const me = document.querySelector("#me");
-const to = document.querySelector("#to");
-SEATS.forEach(([id, name]) => {
-  me.add(new Option(name, id));
-  to.add(new Option(name, id));
-});
-to.add(new Option("Everyone", "all"), to.options[0]);
-to.value = "all";
+SEATS.forEach(([id, name]) => me.add(new Option(name, id)));
 const saved = localStorage.getItem("quay-token") || "";
 document.querySelector("#token").value = saved;
 document.querySelector("#token-box").classList.toggle("hide", Boolean(saved));
@@ -121,77 +90,290 @@ document.querySelector("#save-token").onclick = () => {
   document.querySelector("#token-box").classList.add("hide");
   note.textContent = "Token saved on this phone.";
 };
-function headers(extra) {
-  const h = { Accept: "application/vnd.github.raw+json", "If-None-Match": etag };
+me.onchange = render;
+
+function headers() {
+  const h = { Accept: "application/vnd.github.raw+json" };
+  if (etag) h["If-None-Match"] = etag;
   const token = localStorage.getItem("quay-token");
   if (token) h.Authorization = "Bearer " + token;
-  return Object.assign(h, extra || {});
+  return h;
 }
 function isStatus(body) {
   const t = (body || "").trim();
-  if (t.length > 180) return false;
-  return /online|signed on|standing by|station live|i am here/i.test(t);
+  return t.length <= 180 && /online|signed on|standing by|station live|i am here/i.test(t);
 }
-function render() {
-  const seatBox = document.querySelector("#seats");
-  seatBox.innerHTML = "";
-  SEATS.forEach(([id, name]) => {
-    const row = document.createElement("div");
-    row.className = "seat";
-    const found = (desk.seats || []).find(s => s.id === id);
-    row.innerHTML = `<div><strong>${name}</strong><span>${found && found.note ? found.note : "Live"}</span></div>`;
-    seatBox.appendChild(row);
+function roomOf(line) {
+  if (line.room) return line.room;
+  if (!line.to || line.to === "all") return "command";
+  return "dm:" + [line.from, line.to].sort().join(":");
+}
+function linesIn(room) {
+  return (desk.lines || []).filter(line => roomOf(line) === room);
+}
+function lastLine(room) {
+  const rows = linesIn(room).filter(line => !isStatus(line.body));
+  return rows.length ? rows[rows.length - 1].body : "Nothing yet.";
+}
+function openSteps() {
+  return (desk.ideas || []).reduce((n, idea) => n + (idea.steps || []).filter(step => !step.pass).length, 0);
+}
+function go(next) { view = next; render(); }
+
+function renderNav() {
+  const nav = document.querySelector("#nav");
+  nav.innerHTML = "";
+  [["home", "Home"], ["command", "Command"], ["direct", "Direct"], ["groups", "Groups"], ["projects", "Projects"]].forEach(([id, label]) => {
+    const button = document.createElement("button");
+    button.textContent = label;
+    const on = id === "home" ? view === "home"
+      : id === "command" ? view === "command"
+      : id === "direct" ? view === "direct" || view.startsWith("dm:")
+      : id === "groups" ? view === "groups" || view.startsWith("group:")
+      : view === "projects" || view.startsWith("project:");
+    if (on) button.className = "on";
+    button.onclick = () => go(id);
+    nav.appendChild(button);
   });
-  const quiet = document.querySelector("#quiet").checked;
-  const stream = document.querySelector("#stream");
-  stream.innerHTML = "";
-  (desk.lines || []).slice().reverse().forEach(line => {
-    if (quiet && isStatus(line.body)) return;
+}
+function card(title, detail, onclick) {
+  const button = document.createElement("button");
+  button.className = "card";
+  const strong = document.createElement("strong");
+  strong.textContent = title;
+  const p = document.createElement("div");
+  p.className = "meta";
+  p.textContent = detail;
+  button.append(strong, p);
+  button.onclick = onclick;
+  return button;
+}
+function messageList(room) {
+  const box = document.createElement("div");
+  linesIn(room).slice().reverse().forEach(line => {
+    if (isStatus(line.body)) return;
     const row = document.createElement("div");
     row.className = "line";
-    const who = SEATS.find(s => s[0] === line.from);
-    const dest = line.to === "all" ? "everyone" : (SEATS.find(s => s[0] === line.to) || ["", line.to])[1];
-    row.innerHTML = `<div class="meta">${who ? who[1] : line.from} to ${dest}</div><div></div>`;
-    row.lastChild.textContent = line.body;
-    stream.appendChild(row);
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = nameOf(line.from);
+    const body = document.createElement("div");
+    body.textContent = line.body;
+    row.append(meta, body);
+    box.appendChild(row);
   });
-  const ideas = document.querySelector("#ideas");
-  ideas.innerHTML = "";
-  (desk.ideas || []).slice().reverse().forEach(idea => {
-    const row = document.createElement("div");
-    row.className = "idea";
-    const title = document.createElement("strong");
-    title.textContent = idea.title;
-    const done = document.createElement("div");
-    done.textContent = idea.done;
-    const folder = document.createElement("div");
-    folder.className = "meta";
-    folder.textContent = idea.folder;
-    row.append(title, done, folder);
-    (idea.steps || []).forEach((step, index) => {
-      const line = document.createElement("label");
-      line.className = "step";
-      const box = document.createElement("input");
-      box.type = "checkbox";
-      box.checked = Boolean(step.pass);
-      box.onchange = () => mark(idea.id, index, box.checked);
-      const text = document.createElement("span");
-      text.textContent = step.text;
-      if (step.pass) text.className = "pass";
-      line.append(box, text);
-      row.appendChild(line);
+  return box;
+}
+function composer(room) {
+  const wrap = document.createElement("div");
+  const field = document.createElement("textarea");
+  field.placeholder = "Say it in this room.";
+  const send = document.createElement("button");
+  send.className = "primary";
+  send.textContent = "Send";
+  send.onclick = async () => {
+    const text = field.value.trim();
+    if (!text) return;
+    const next = structuredClone(desk);
+    next.lines = next.lines || [];
+    next.lines.push({ id: crypto.randomUUID(), at: new Date().toISOString(), from: me.value, room, body: text });
+    if (await save(next)) field.value = "";
+  };
+  wrap.append(field, send);
+  return wrap;
+}
+function peopleChecks() {
+  const wrap = document.createElement("div");
+  wrap.className = "row";
+  SEATS.forEach(([id, name]) => {
+    const label = document.createElement("label");
+    label.className = "check";
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.value = id;
+    if (id === me.value) box.checked = true;
+    label.append(box, document.createTextNode(name));
+    wrap.appendChild(label);
+  });
+  return wrap;
+}
+
+function renderHome() {
+  document.querySelector("#title").textContent = "Home";
+  const stage = document.querySelector("#stage");
+  stage.innerHTML = "";
+  const work = document.createElement("p");
+  work.textContent = "Open steps: " + openSteps();
+  stage.appendChild(work);
+  stage.appendChild(card("Command", lastLine("command"), () => go("command")));
+  const directs = [...new Set((desk.lines || []).map(roomOf).filter(id => id.startsWith("dm:") && id.includes(me.value)))];
+  directs.forEach(id => {
+    const other = id.slice(3).split(":").find(seat => seat !== me.value);
+    stage.appendChild(card("Direct · " + nameOf(other), lastLine(id), () => go(id)));
+  });
+  (desk.groups || []).forEach(group => {
+    stage.appendChild(card("Group · " + group.name, lastLine("group:" + group.id), () => go("group:" + group.id)));
+  });
+  (desk.ideas || []).forEach(idea => {
+    const left = (idea.steps || []).filter(step => !step.pass).length;
+    stage.appendChild(card("Project · " + idea.title, left + " steps open", () => go("project:" + idea.id)));
+  });
+}
+function renderCommand() {
+  document.querySelector("#title").textContent = "Command";
+  const stage = document.querySelector("#stage");
+  stage.innerHTML = "";
+  const hint = document.createElement("p");
+  hint.className = "meta";
+  hint.textContent = "Everyone. Status lines stay folded. This room refreshes on its own.";
+  stage.append(hint, composer("command"), messageList("command"));
+}
+function renderDirectPicker() {
+  document.querySelector("#title").textContent = "Direct";
+  const stage = document.querySelector("#stage");
+  stage.innerHTML = "";
+  const row = document.createElement("div");
+  row.className = "row";
+  const pick = document.createElement("select");
+  SEATS.filter(([id]) => id !== me.value).forEach(([id, name]) => pick.add(new Option(name, id)));
+  const open = document.createElement("button");
+  open.className = "primary";
+  open.textContent = "Open line";
+  open.onclick = () => go("dm:" + [me.value, pick.value].sort().join(":"));
+  row.append(pick, open);
+  stage.appendChild(row);
+}
+function renderDirect(room) {
+  const other = room.slice(3).split(":").find(seat => seat !== me.value);
+  document.querySelector("#title").textContent = nameOf(other);
+  const stage = document.querySelector("#stage");
+  stage.innerHTML = "";
+  const hint = document.createElement("p");
+  hint.className = "meta";
+  hint.textContent = "Only you and " + nameOf(other) + ".";
+  stage.append(hint, composer(room), messageList(room));
+}
+function renderGroups() {
+  document.querySelector("#title").textContent = "Groups";
+  const stage = document.querySelector("#stage");
+  stage.innerHTML = "";
+  const name = document.createElement("input");
+  name.placeholder = "Group name";
+  const checks = peopleChecks();
+  const make = document.createElement("button");
+  make.className = "primary";
+  make.textContent = "Make group";
+  make.onclick = async () => {
+    const title = name.value.trim();
+    const members = [...checks.querySelectorAll("input:checked")].map(box => box.value);
+    if (!title || members.length < 2) { note.textContent = "Need a name and at least two people."; return; }
+    const next = structuredClone(desk);
+    next.groups = next.groups || [];
+    const id = crypto.randomUUID();
+    next.groups.push({ id, name: title, members });
+    if (await save(next)) go("group:" + id);
+  };
+  stage.append(name, checks, make);
+  (desk.groups || []).forEach(group => stage.appendChild(card(group.name, group.members.map(nameOf).join(", "), () => go("group:" + group.id))));
+}
+function renderGroup(id) {
+  const group = (desk.groups || []).find(item => item.id === id);
+  document.querySelector("#title").textContent = group ? group.name : "Group";
+  const stage = document.querySelector("#stage");
+  stage.innerHTML = "";
+  const hint = document.createElement("p");
+  hint.className = "meta";
+  hint.textContent = group ? group.members.map(nameOf).join(", ") : "";
+  stage.append(hint, composer("group:" + id), messageList("group:" + id));
+}
+function renderProjects() {
+  document.querySelector("#title").textContent = "Projects";
+  const stage = document.querySelector("#stage");
+  stage.innerHTML = "";
+  const title = document.createElement("input");
+  title.placeholder = "The job";
+  const done = document.createElement("input");
+  done.placeholder = "What done looks like";
+  const folder = document.createElement("input");
+  folder.placeholder = "Folder the file will land in";
+  const file = document.createElement("button");
+  file.className = "primary";
+  file.textContent = "File it";
+  file.onclick = async () => {
+    if (!title.value.trim() || !done.value.trim() || !folder.value.trim()) {
+      note.textContent = "Need the job, the done line, and the folder.";
+      return;
+    }
+    const next = structuredClone(desk);
+    next.ideas = next.ideas || [];
+    const id = crypto.randomUUID();
+    next.ideas.push({
+      id, title: title.value.trim(), done: done.value.trim(), folder: folder.value.trim(),
+      steps: [
+        { text: "Write the done line", pass: true },
+        { text: "Make the first file", pass: false },
+        { text: "Open it and check it against the line", pass: false }
+      ]
     });
-    ideas.appendChild(row);
+    if (await save(next)) go("project:" + id);
+  };
+  stage.append(title, done, folder, file);
+  (desk.ideas || []).forEach(idea => {
+    const left = (idea.steps || []).filter(step => !step.pass).length;
+    stage.appendChild(card(idea.title, left + " steps open", () => go("project:" + idea.id)));
   });
+}
+function renderProject(id) {
+  const idea = (desk.ideas || []).find(item => item.id === id);
+  document.querySelector("#title").textContent = idea ? idea.title : "Project";
+  const stage = document.querySelector("#stage");
+  stage.innerHTML = "";
+  if (!idea) return;
+  const done = document.createElement("p");
+  done.textContent = idea.done;
+  const folder = document.createElement("p");
+  folder.className = "meta";
+  folder.textContent = idea.folder;
+  stage.append(done, folder);
+  (idea.steps || []).forEach((step, index) => {
+    const label = document.createElement("label");
+    label.className = "step";
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = Boolean(step.pass);
+    box.onchange = () => mark(id, index, box.checked);
+    const text = document.createElement("span");
+    text.textContent = step.text;
+    if (step.pass) text.className = "pass";
+    label.append(box, text);
+    stage.appendChild(label);
+  });
+  const chat = document.createElement("h2");
+  chat.textContent = "Project chat";
+  stage.append(chat, composer("project:" + id), messageList("project:" + id));
+}
+function render() {
+  renderNav();
+  if (view === "home") return renderHome();
+  if (view === "command") return renderCommand();
+  if (view === "direct") return renderDirectPicker();
+  if (view.startsWith("dm:")) return renderDirect(view);
+  if (view === "groups") return renderGroups();
+  if (view.startsWith("group:")) return renderGroup(view.slice(6));
+  if (view === "projects") return renderProjects();
+  if (view.startsWith("project:")) return renderProject(view.slice(8));
+  view = "home";
+  renderHome();
 }
 async function load() {
   const res = await fetch(API + "?ref=main", { headers: headers() });
   if (res.status === 304) return;
   if (!res.ok) { note.textContent = "The cloud record did not answer."; return; }
   etag = res.headers.get("etag") || etag;
-  sha = res.headers.get("x-content-sha") || sha;
-  const text = await res.text();
-  try { desk = JSON.parse(text); } catch { note.textContent = "The record was not readable."; return; }
+  try { desk = JSON.parse(await res.text()); } catch { note.textContent = "The record was not readable."; return; }
+  desk.lines = desk.lines || [];
+  desk.ideas = desk.ideas || [];
+  desk.groups = desk.groups || [];
   note.textContent = "";
   render();
 }
@@ -201,16 +383,15 @@ async function save(next) {
   const meta = await fetch(API + "?ref=main", { headers: { Accept: "application/vnd.github+json", Authorization: "Bearer " + token } });
   if (!meta.ok) { note.textContent = "Could not open the record."; return false; }
   const info = await meta.json();
-  const body = {
-    message: "Update the Quay desk",
-    content: btoa(unescape(encodeURIComponent(JSON.stringify(next, null, 2)))),
-    sha: info.sha,
-    branch: "main"
-  };
   const put = await fetch(API, {
     method: "PUT",
     headers: { Accept: "application/vnd.github+json", Authorization: "Bearer " + token, "Content-Type": "application/json" },
-    body: JSON.stringify(body)
+    body: JSON.stringify({
+      message: "Update the Quay desk",
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(next, null, 2)))),
+      sha: info.sha,
+      branch: "main"
+    })
   });
   if (!put.ok) { note.textContent = "The write did not land."; return false; }
   desk = next;
@@ -218,36 +399,6 @@ async function save(next) {
   render();
   return true;
 }
-document.querySelector("#send").onclick = async () => {
-  const text = document.querySelector("#body").value.trim();
-  if (!text) return;
-  const next = structuredClone(desk);
-  next.lines = next.lines || [];
-  next.lines.push({ id: crypto.randomUUID(), at: new Date().toISOString(), from: me.value, to: to.value, body: text });
-  if (await save(next)) document.querySelector("#body").value = "";
-};
-document.querySelector("#file").onclick = async () => {
-  const title = document.querySelector("#title").value.trim();
-  const done = document.querySelector("#done").value.trim();
-  const folder = document.querySelector("#folder").value.trim();
-  if (!title || !done || !folder) { note.textContent = "Need the job, the done line, and the folder."; return; }
-  const next = structuredClone(desk);
-  next.ideas = next.ideas || [];
-  next.ideas.push({
-    id: crypto.randomUUID(),
-    title, done, folder,
-    steps: [
-      { text: "Write the done line", pass: true },
-      { text: "Make the first file", pass: false },
-      { text: "Open it and check it against the line", pass: false }
-    ]
-  });
-  if (await save(next)) {
-    document.querySelector("#title").value = "";
-    document.querySelector("#done").value = "";
-    document.querySelector("#folder").value = "";
-  }
-};
 async function mark(id, index, pass) {
   const next = structuredClone(desk);
   const idea = (next.ideas || []).find(item => item.id === id);
@@ -255,7 +406,6 @@ async function mark(id, index, pass) {
   idea.steps[index].pass = pass;
   await save(next);
 }
-document.querySelector("#quiet").onchange = render;
 load();
 setInterval(load, 4000);
 </script>
