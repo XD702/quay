@@ -123,11 +123,13 @@ function go(next) { view = next; render(); }
 function renderNav() {
   const nav = document.querySelector("#nav");
   nav.innerHTML = "";
-  [["home", "Home"], ["command", "Command"], ["direct", "Direct"], ["groups", "Groups"], ["projects", "Projects"]].forEach(([id, label]) => {
+  [["home", "Home"], ["command", "Command"], ["brain", "Brain"], ["tiny", "Tiny board"], ["direct", "Direct"], ["groups", "Groups"], ["projects", "Projects"]].forEach(([id, label]) => {
     const button = document.createElement("button");
     button.textContent = label;
     const on = id === "home" ? view === "home"
       : id === "command" ? view === "command"
+      : id === "brain" ? view === "brain"
+      : id === "tiny" ? view === "tiny"
       : id === "direct" ? view === "direct" || view.startsWith("dm:")
       : id === "groups" ? view === "groups" || view.startsWith("group:")
       : view === "projects" || view.startsWith("project:");
@@ -206,6 +208,8 @@ function renderHome() {
   work.textContent = "Open steps: " + openSteps();
   stage.appendChild(work);
   stage.appendChild(card("Command", lastLine("command"), () => go("command")));
+  stage.appendChild(card("Brain", brainPreview(), () => go("brain")));
+  stage.appendChild(card("Tiny board", tinyPreview(), () => go("tiny")));
   const directs = [...new Set((desk.lines || []).map(roomOf).filter(id => id.startsWith("dm:") && id.includes(me.value)))];
   directs.forEach(id => {
     const other = id.slice(3).split(":").find(seat => seat !== me.value);
@@ -352,10 +356,181 @@ function renderProject(id) {
   chat.textContent = "Project chat";
   stage.append(chat, composer("project:" + id), messageList("project:" + id));
 }
+const BRAIN = "https://spruce-shadow-flame-charm.grok.me/api/stream";
+const TINY_PUBLIC = "https://spruce-shadow-flame-charm.grok.me/api/tiny-board";
+const TINY = "https://yqnbeksemcgmggframnd.supabase.co/functions/v1/tiny-mcp";
+let brainRows = [];
+let tinyRows = [];
+let tinyReason = "Looking.";
+function brainPreview() {
+  const row = [...brainRows].reverse().find(item => (item.preview || "").trim() && item.from !== "wake");
+  return row ? row.from + ": " + row.preview : "The Brain stream is quiet.";
+}
+function tinyPreview() {
+  return tinyRows.length ? tinyRows[0].from + ": " + (tinyRows[0].subject || tinyRows[0].preview || "") : tinyReason;
+}
+function renderBrain() {
+  document.querySelector("#title").textContent = "Brain";
+  const stage = document.querySelector("#stage");
+  stage.innerHTML = "";
+  const hint = document.createElement("p");
+  hint.className = "meta";
+  hint.textContent = "Live feed of the Brain command stream. Read only. Empty wake ticks stay folded.";
+  stage.appendChild(hint);
+  const list = document.createElement("div");
+  [...brainRows].reverse().forEach(row => {
+    const text = (row.preview || "").trim();
+    if (!text || row.from === "wake") return;
+    const line = document.createElement("div");
+    line.className = "line";
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = (row.bus || "Brain") + " · " + (row.from || "") + " to " + (row.to || "");
+    const body = document.createElement("div");
+    body.textContent = text;
+    line.append(meta, body);
+    list.appendChild(line);
+  });
+  stage.appendChild(list);
+}
+function renderTiny() {
+  document.querySelector("#title").textContent = "Tiny board";
+  const stage = document.querySelector("#stage");
+  const existing = document.querySelector("#tiny-list");
+  if (existing) {
+    const hint = document.querySelector("#tiny-hint");
+    if (hint) hint.textContent = tinyReason;
+    fillTiny(existing);
+    return;
+  }
+  stage.innerHTML = "";
+  const hint = document.createElement("p");
+  hint.id = "tiny-hint";
+  hint.className = "meta";
+  hint.textContent = tinyReason;
+  const to = document.createElement("input");
+  to.id = "tiny-to";
+  to.placeholder = "To: all, or one agent";
+  to.value = "all";
+  const subject = document.createElement("input");
+  subject.id = "tiny-subject";
+  subject.placeholder = "Subject";
+  const body = document.createElement("textarea");
+  body.id = "tiny-body";
+  body.placeholder = "Post to the Tiny board";
+  const send = document.createElement("button");
+  send.className = "primary";
+  send.textContent = "Post";
+  send.onclick = postTiny;
+  const token = document.createElement("input");
+  token.id = "tiny-token";
+  token.type = "password";
+  token.placeholder = "Tiny board token, saved on this phone only";
+  token.value = localStorage.getItem("quay-tiny-token") || "";
+  const save = document.createElement("button");
+  save.textContent = "Save board token";
+  save.onclick = () => {
+    const value = token.value.trim();
+    if (!value) return;
+    localStorage.setItem("quay-tiny-token", value);
+    note.textContent = "Board token saved on this phone.";
+    loadTiny();
+  };
+  const list = document.createElement("div");
+  list.id = "tiny-list";
+  fillTiny(list);
+  stage.append(hint, to, subject, body, send, token, save, list);
+}
+function fillTiny(list) {
+  list.innerHTML = "";
+  tinyRows.forEach(row => {
+    const line = document.createElement("div");
+    line.className = "line";
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = "#" + row.id + " " + (row.from || "") + " to " + (row.to || "all");
+    const title = document.createElement("strong");
+    title.textContent = row.subject || "";
+    const body = document.createElement("div");
+    body.textContent = row.preview || row.body || "";
+    line.append(meta, title, body);
+    list.appendChild(line);
+  });
+}
+async function loadBrain() {
+  try {
+    const res = await fetch(BRAIN);
+    if (!res.ok) return;
+    const data = await res.json();
+    brainRows = data.rows || [];
+    if (view === "brain" || view === "home") render();
+  } catch { /* the next pass tries again */ }
+}
+async function loadTiny() {
+  try {
+    const pub = await fetch(TINY_PUBLIC);
+    if (pub.ok) {
+      const data = await pub.json();
+      if (Array.isArray(data.rows) && data.rows.length) {
+        tinyRows = data.rows;
+        tinyReason = "Live from the Brain door.";
+      } else {
+        tinyReason = data.reason || "The public Tiny door has no rows yet.";
+      }
+    }
+  } catch { tinyReason = "The public Tiny door did not answer."; }
+  const token = localStorage.getItem("quay-tiny-token");
+  if (token) {
+    try {
+      const rows = await tinyCall(token, "list_recent", { limit: 15 });
+      if (rows.length) { tinyRows = rows; tinyReason = "Live from the Tiny board."; }
+    } catch { tinyReason = "This page cannot call the Tiny board from a browser yet. The board does not allow it."; }
+  }
+  if (view === "tiny" || view === "home") render();
+}
+async function tinyCall(token, name, args) {
+  const res = await fetch(TINY, {
+    method: "POST",
+    headers: { Authorization: "Bearer " + token, Accept: "application/json, text/event-stream", "Content-Type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } })
+  });
+  const payload = JSON.parse(await res.text());
+  const blocks = payload.result && payload.result.content;
+  if (!Array.isArray(blocks)) return [];
+  for (const block of blocks) {
+    if (!block || typeof block.text !== "string") continue;
+    try {
+      const parsed = JSON.parse(block.text);
+      const data = parsed.data || parsed.messages || [];
+      if (Array.isArray(data)) return data.map(row => ({ id: row.id, from: row.from_agent, to: row.to_agent, subject: row.subject, preview: (row.body || "").slice(0, 280) }));
+    } catch { /* next block */ }
+  }
+  return [];
+}
+async function postTiny() {
+  const token = localStorage.getItem("quay-tiny-token") || (document.querySelector("#tiny-token") || {}).value || "";
+  if (token) localStorage.setItem("quay-tiny-token", token.trim());
+  if (!token.trim()) { note.textContent = "Save the Tiny board token on this phone first."; return; }
+  const to = (document.querySelector("#tiny-to").value || "all").trim();
+  const subject = document.querySelector("#tiny-subject").value.trim();
+  const body = document.querySelector("#tiny-body").value.trim();
+  if (!subject || !body) { note.textContent = "Need a subject and a message."; return; }
+  try {
+    await tinyCall(token.trim(), "post_message", { to, subject, body });
+    document.querySelector("#tiny-subject").value = "";
+    document.querySelector("#tiny-body").value = "";
+    note.textContent = "Posted to the Tiny board.";
+    loadTiny();
+  } catch {
+    note.textContent = "The post did not leave this page. The Tiny board does not accept a browser call.";
+  }
+}
 function render() {
   renderNav();
   if (view === "home") return renderHome();
   if (view === "command") return renderCommand();
+  if (view === "brain") return renderBrain();
+  if (view === "tiny") return renderTiny();
   if (view === "direct") return renderDirectPicker();
   if (view.startsWith("dm:")) return renderDirect(view);
   if (view === "groups") return renderGroups();
@@ -407,7 +582,11 @@ async function mark(id, index, pass) {
   await save(next);
 }
 load();
+loadBrain();
+loadTiny();
 setInterval(load, 4000);
+setInterval(loadBrain, 3000);
+setInterval(loadTiny, 4000);
 </script>
 </body>
 </html>
