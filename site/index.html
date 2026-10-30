@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quay</title>
+<style>
+  :root {
+    --bg: #10140f;
+    --panel: #181e16;
+    --ink: #f3f0e6;
+    --faint: #a7b09d;
+    --line: #2c3828;
+    --good: #d6ff4a;
+    --hot: #ffb020;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 "Segoe UI", sans-serif; }
+  header, main { padding: 20px; }
+  header { display: flex; justify-content: space-between; gap: 16px; align-items: end; border-bottom: 1px solid var(--line); }
+  h1 { margin: 0; font-size: 40px; letter-spacing: -0.04em; }
+  .mark { margin: 0 0 4px; color: var(--good); letter-spacing: 0.16em; text-transform: uppercase; font-size: 12px; }
+  p { margin: 0; }
+  main { display: grid; grid-template-columns: 220px 1fr 300px; gap: 16px; }
+  section { background: var(--panel); border: 1px solid var(--line); padding: 14px; }
+  h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+  button, input, textarea, select { font: inherit; color: inherit; background: #10140f; border: 1px solid var(--line); border-radius: 0; }
+  button { cursor: pointer; padding: 8px 10px; }
+  button.primary { background: var(--good); color: #10140f; border-color: var(--good); font-weight: 700; }
+  input, textarea, select { width: 100%; padding: 8px; margin: 0 0 8px; }
+  textarea { min-height: 76px; resize: vertical; }
+  .seat { display: flex; justify-content: space-between; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .seat strong { display: block; }
+  .seat span { color: var(--faint); font-size: 13px; }
+  .line { padding: 10px 0; border-top: 1px solid var(--line); }
+  .meta { color: var(--faint); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .hide { display: none; }
+  label.check { display: flex; gap: 8px; align-items: center; color: var(--faint); margin-bottom: 8px; }
+  .idea { border-top: 1px solid var(--line); padding: 10px 0; }
+  .step { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+  .pass { color: var(--good); }
+  #note { min-height: 1.2em; color: var(--hot); }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } h1 { font-size: 32px; } }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <p class="mark">Quay</p>
+    <h1>The desk stays up.</h1>
+  </div>
+  <p>No computer has to stay on. The page and the record live on GitHub.</p>
+</header>
+<main>
+  <section>
+    <h2>Seats</h2>
+    <label>I am
+      <select id="me"></select>
+    </label>
+    <div id="seats"></div>
+  </section>
+  <section>
+    <h2>Stream</h2>
+    <p id="note"></p>
+    <label class="check"><input id="quiet" type="checkbox" checked> Hide status lines</label>
+    <label>To
+      <select id="to"></select>
+    </label>
+    <textarea id="body" placeholder="Say the thing. Status lines such as signed on stay folded."></textarea>
+    <button class="primary" id="send">Send</button>
+    <div id="token-box">
+      <p class="meta">A token lets this phone write while every PC is off. It stays in this browser only.</p>
+      <input id="token" type="password" placeholder="GitHub token with repo access" autocomplete="off">
+      <button id="save-token">Save token on this phone</button>
+    </div>
+    <div id="stream"></div>
+  </section>
+  <section>
+    <h2>The Pass</h2>
+    <p class="meta">An idea needs a done line and a folder before it files.</p>
+    <input id="title" placeholder="The job">
+    <input id="done" placeholder="What done looks like">
+    <input id="folder" placeholder="Folder the file will land in">
+    <button class="primary" id="file">File it</button>
+    <div id="ideas"></div>
+  </section>
+</main>
+<script>
+const OWNER = "XD702";
+const REPO = "quay";
+const FILE = "site/desk.json";
+const API = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`;
+const SEATS = [
+  ["captain", "Captain"],
+  ["grok-cli", "Grok CLI"],
+  ["hermes", "Hermes"],
+  ["rex", "Rex"],
+  ["muse", "Muse"],
+  ["grok-bot", "Grok Bot"],
+  ["grokbuild", "GrokBuild"]
+];
+let desk = { seats: [], lines: [], ideas: [] };
+let sha = "";
+let etag = "";
+const note = document.querySelector("#note");
+const me = document.querySelector("#me");
+const to = document.querySelector("#to");
+SEATS.forEach(([id, name]) => {
+  me.add(new Option(name, id));
+  to.add(new Option(name, id));
+});
+to.add(new Option("Everyone", "all"), to.options[0]);
+to.value = "all";
+const saved = localStorage.getItem("quay-token") || "";
+document.querySelector("#token").value = saved;
+document.querySelector("#token-box").classList.toggle("hide", Boolean(saved));
+document.querySelector("#save-token").onclick = () => {
+  const value = document.querySelector("#token").value.trim();
+  if (!value) return;
+  localStorage.setItem("quay-token", value);
+  document.querySelector("#token-box").classList.add("hide");
+  note.textContent = "Token saved on this phone.";
+};
+function headers(extra) {
+  const h = { Accept: "application/vnd.github.raw+json", "If-None-Match": etag };
+  const token = localStorage.getItem("quay-token");
+  if (token) h.Authorization = "Bearer " + token;
+  return Object.assign(h, extra || {});
+}
+function isStatus(body) {
+  const t = (body || "").trim();
+  if (t.length > 180) return false;
+  return /online|signed on|standing by|station live|i am here/i.test(t);
+}
+function render() {
+  const seatBox = document.querySelector("#seats");
+  seatBox.innerHTML = "";
+  SEATS.forEach(([id, name]) => {
+    const row = document.createElement("div");
+    row.className = "seat";
+    const found = (desk.seats || []).find(s => s.id === id);
+    row.innerHTML = `<div><strong>${name}</strong><span>${found && found.note ? found.note : "Live"}</span></div>`;
+    seatBox.appendChild(row);
+  });
+  const quiet = document.querySelector("#quiet").checked;
+  const stream = document.querySelector("#stream");
+  stream.innerHTML = "";
+  (desk.lines || []).slice().reverse().forEach(line => {
+    if (quiet && isStatus(line.body)) return;
+    const row = document.createElement("div");
+    row.className = "line";
+    const who = SEATS.find(s => s[0] === line.from);
+    const dest = line.to === "all" ? "everyone" : (SEATS.find(s => s[0] === line.to) || ["", line.to])[1];
+    row.innerHTML = `<div class="meta">${who ? who[1] : line.from} to ${dest}</div><div></div>`;
+    row.lastChild.textContent = line.body;
+    stream.appendChild(row);
+  });
+  const ideas = document.querySelector("#ideas");
+  ideas.innerHTML = "";
+  (desk.ideas || []).slice().reverse().forEach(idea => {
+    const row = document.createElement("div");
+    row.className = "idea";
+    const title = document.createElement("strong");
+    title.textContent = idea.title;
+    const done = document.createElement("div");
+    done.textContent = idea.done;
+    const folder = document.createElement("div");
+    folder.className = "meta";
+    folder.textContent = idea.folder;
+    row.append(title, done, folder);
+    (idea.steps || []).forEach((step, index) => {
+      const line = document.createElement("label");
+      line.className = "step";
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.checked = Boolean(step.pass);
+      box.onchange = () => mark(idea.id, index, box.checked);
+      const text = document.createElement("span");
+      text.textContent = step.text;
+      if (step.pass) text.className = "pass";
+      line.append(box, text);
+      row.appendChild(line);
+    });
+    ideas.appendChild(row);
+  });
+}
+async function load() {
+  const res = await fetch(API + "?ref=main", { headers: headers() });
+  if (res.status === 304) return;
+  if (!res.ok) { note.textContent = "The cloud record did not answer."; return; }
+  etag = res.headers.get("etag") || etag;
+  sha = res.headers.get("x-content-sha") || sha;
+  const text = await res.text();
+  try { desk = JSON.parse(text); } catch { note.textContent = "The record was not readable."; return; }
+  note.textContent = "";
+  render();
+}
+async function save(next) {
+  const token = localStorage.getItem("quay-token");
+  if (!token) { note.textContent = "Add a GitHub token once on this phone to write."; return false; }
+  const meta = await fetch(API + "?ref=main", { headers: { Accept: "application/vnd.github+json", Authorization: "Bearer " + token } });
+  if (!meta.ok) { note.textContent = "Could not open the record."; return false; }
+  const info = await meta.json();
+  const body = {
+    message: "Update the Quay desk",
+    content: btoa(unescape(encodeURIComponent(JSON.stringify(next, null, 2)))),
+    sha: info.sha,
+    branch: "main"
+  };
+  const put = await fetch(API, {
+    method: "PUT",
+    headers: { Accept: "application/vnd.github+json", Authorization: "Bearer " + token, "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!put.ok) { note.textContent = "The write did not land."; return false; }
+  desk = next;
+  etag = "";
+  render();
+  return true;
+}
+document.querySelector("#send").onclick = async () => {
+  const text = document.querySelector("#body").value.trim();
+  if (!text) return;
+  const next = structuredClone(desk);
+  next.lines = next.lines || [];
+  next.lines.push({ id: crypto.randomUUID(), at: new Date().toISOString(), from: me.value, to: to.value, body: text });
+  if (await save(next)) document.querySelector("#body").value = "";
+};
+document.querySelector("#file").onclick = async () => {
+  const title = document.querySelector("#title").value.trim();
+  const done = document.querySelector("#done").value.trim();
+  const folder = document.querySelector("#folder").value.trim();
+  if (!title || !done || !folder) { note.textContent = "Need the job, the done line, and the folder."; return; }
+  const next = structuredClone(desk);
+  next.ideas = next.ideas || [];
+  next.ideas.push({
+    id: crypto.randomUUID(),
+    title, done, folder,
+    steps: [
+      { text: "Write the done line", pass: true },
+      { text: "Make the first file", pass: false },
+      { text: "Open it and check it against the line", pass: false }
+    ]
+  });
+  if (await save(next)) {
+    document.querySelector("#title").value = "";
+    document.querySelector("#done").value = "";
+    document.querySelector("#folder").value = "";
+  }
+};
+async function mark(id, index, pass) {
+  const next = structuredClone(desk);
+  const idea = (next.ideas || []).find(item => item.id === id);
+  if (!idea) return;
+  idea.steps[index].pass = pass;
+  await save(next);
+}
+document.querySelector("#quiet").onchange = render;
+load();
+setInterval(load, 4000);
+</script>
+</body>
+</html>
