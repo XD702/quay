@@ -6,38 +6,41 @@
 <title>Quay</title>
 <style>
   :root {
-    --bg: #10140f; --panel: #181e16; --ink: #f3f0e6; --faint: #a7b09d;
-    --line: #2c3828; --good: #d6ff4a; --hot: #ffb020;
+    --bg: #0c0f0b; --panel: #161b14; --card: #1e261b; --ink: #f6f3ea; --faint: #b7c0ae;
+    --line: #31402c; --good: #d6ff4a; --hot: #ffb020;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 "Segoe UI", sans-serif; }
-  header, main { padding: 20px; }
-  header { display: flex; justify-content: space-between; gap: 16px; align-items: end; border-bottom: 1px solid var(--line); }
-  h1 { margin: 0; font-size: 36px; letter-spacing: -0.04em; }
-  .mark { margin: 0 0 4px; color: var(--good); letter-spacing: 0.16em; text-transform: uppercase; font-size: 12px; }
-  p { margin: 0; }
-  main { display: grid; grid-template-columns: 240px 1fr; gap: 16px; }
-  section { background: var(--panel); border: 1px solid var(--line); padding: 14px; }
-  h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
-  button, input, textarea, select { font: inherit; color: inherit; background: #10140f; border: 1px solid var(--line); }
-  button { cursor: pointer; padding: 8px 10px; }
-  button.primary { background: var(--good); color: #10140f; border-color: var(--good); font-weight: 700; }
-  button.on { border-color: var(--good); color: var(--good); }
-  input, textarea, select { width: 100%; padding: 8px; margin: 0 0 8px; }
-  textarea { min-height: 72px; resize: vertical; }
-  .nav button { display: block; width: 100%; text-align: left; margin: 0 0 6px; background: transparent; }
-  .card, .line, .idea { border-top: 1px solid var(--line); padding: 10px 0; }
-  .card { width: 100%; text-align: left; background: transparent; }
-  .meta { color: var(--faint); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
-  .live { color: var(--good); }
+  body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font: 16px/1.45 "Segoe UI", sans-serif; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; border-bottom: 1px solid var(--line); background: #121710; }
+  h1 { margin: 0; font-size: 28px; letter-spacing: -0.04em; }
+  .mark { margin: 0; color: var(--good); letter-spacing: 0.18em; text-transform: uppercase; font-size: 12px; font-weight: 700; }
+  .live { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: #243018; color: var(--good); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+  main { display: grid; grid-template-columns: 250px 1fr; min-height: calc(100vh - 70px); }
+  section { padding: 18px; }
+  section:first-child { background: var(--panel); border-right: 1px solid var(--line); }
+  h2 { margin: 14px 0 8px; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 12px; background: #243018; }
+  button.primary { background: var(--good); color: #12160f; font-weight: 700; }
+  button.on { background: var(--good); color: #12160f; font-weight: 700; }
+  input, textarea, select { width: 100%; padding: 10px 12px; margin: 0 0 10px; border-radius: 10px; border: 1px solid var(--line); background: #10140f; }
+  textarea { min-height: 88px; resize: vertical; }
+  .nav button { display: block; width: 100%; text-align: left; margin: 0 0 8px; }
+  #stage { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; align-content: start; }
+  .card { display: block; width: 100%; min-height: 110px; text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  .card strong { display: block; font-size: 18px; margin-bottom: 8px; }
+  .line { grid-column: 1 / -1; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  .meta { color: var(--faint); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+  p { margin: 0 0 10px; }
   .hide { display: none; }
-  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  .row, #stage > div, #stage > input, #stage > textarea, #stage > button, #stage > p, #stage > h2, #stage > label { grid-column: 1 / -1; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .row input, .row select { width: auto; margin: 0; }
   label.check { display: flex; gap: 8px; align-items: center; color: var(--faint); }
-  .step { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+  .step { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
   .pass { color: var(--good); }
-  #note { min-height: 1.2em; color: var(--hot); margin-bottom: 8px; }
-  @media (max-width: 800px) { main { grid-template-columns: 1fr; } h1 { font-size: 30px; } }
+  #note { min-height: 1.2em; color: var(--hot); }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
